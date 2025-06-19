@@ -1,0 +1,20 @@
+name: testing-options
+on:
+  workflow_dispatch:
+    inputs:
+      Repos:
+        description: testing
+        required: true
+        type: choice
+        options:
+          - repo1
+          - repo2
+jobs:
+  first_job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: printing
+        run: |
+          echo "hi"
+          echo "${{ github.event.inputs.Repos }}"
+        
