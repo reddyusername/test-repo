@@ -1,20 +1,39 @@
-name: testing-options
+name: Test GCP Auth and Image Pull
+
 on:
-  workflow_dispatch:
-    inputs:
-      Repos:
-        description: testing
-        required: true
-        type: choice
-        options:
-          - repo1
-          - repo2
+  workflow_dispatch: # Allows you to trigger this manually from the Actions tab
+
 jobs:
-  first_job:
+  test-pull:
     runs-on: ubuntu-latest
+    
+    # Crucial for Workload Identity Federation
+    permissions:
+      contents: read
+      id-token: write
+
     steps:
-      - name: printing
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # Step 1: Authenticate to GCP using WIF
+      - name: Authenticate to Google Cloud
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          token_format: 'access_token'
+          workload_identity_provider: '${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}' # Format: projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/POOL_ID/providers/PROVIDER_ID
+          service_account: '${{ secrets.GCP_SERVICE_ACCOUNT_EMAIL }}'
+
+      # Step 2: Login to Artifact Registry using the generated token
+      - name: Login to Docker Registry
+        uses: docker/login-action@v3
+        with:
+          registry: us-central1-docker.pkg.dev # Change to your region or gcr.io if using GCR
+          username: oauth2accesstoken
+          password: ${{ steps.auth.outputs.access_token }}
+
+      # Step 3: Test pulling the image
+      - name: Pull Test Image
         run: |
-          echo "hi"
-          echo "${{ github.event.inputs.Repos }}"
-        
+          docker pull us-central1-docker.pkg.dev/your-gcp-project/your-repo/your-image:latest
