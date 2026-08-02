@@ -1,0 +1,30 @@
+name: Deploy to GCP
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: 'read'
+      id-token: 'write' # Crucial for GitHub OIDC token generation
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          # Paste the full provider resource name here:
+          workload_identity_provider: 'projects/164087166202/locations/global/workloadIdentityPools/new-test-pool/providers/github-reddy'
+          # Your service account from the screenshot:
+          service_account: 'github-reddy@project-5bc1a644-1859-45c5-9cc.iam.gserviceaccount.com'
+
+      - name: Test gcloud CLI
+        run: |
+          gcloud auth list
