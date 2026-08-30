@@ -33,3 +33,9 @@ variable "availability_zones" {
   description = "List of availability zones"
   default     = ["us-east-1a", "us-east-1b"]
 }
+
+variable "cluster_version" {
+  type        = string
+  description = "Kubernetes version for the EKS cluster"
+  default     = "1.28"
+}
